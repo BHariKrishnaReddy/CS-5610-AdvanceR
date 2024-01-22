@@ -46,7 +46,7 @@ The goal of this assignment is to familiarize students with Git version control 
 - Use the following commands to add and commit the new R file.
 
   ```bash
-  git add analysis.R
+  git add analysis.R  
   git commit -m "Initial commit: Added analysis.R"
   ```
 ### 6. Modify the R File
