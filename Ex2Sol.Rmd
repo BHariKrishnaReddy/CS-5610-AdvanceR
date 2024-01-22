@@ -1,6 +1,6 @@
 ---
 title: "Ex2Sol.Rmd"
-output: html_document
+output: word_document
 date: "2024-01-22"
 ---
 
