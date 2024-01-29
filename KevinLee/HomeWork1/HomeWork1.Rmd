@@ -1,0 +1,47 @@
+---
+title: "HomeWork1"
+author: "Harikrishna"
+date: "2024-01-29"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=TRUE}
+# libraries
+library(ggplot2)
+
+# Pareto distribution parameters
+a <- 3
+b <- 2
+
+# 1. Use the inverse transform method to generate a random sample of size 1000
+set.seed(123)
+sample <- b / (runif(1000))^(1/a)
+
+# 2. density histogram of the sample
+hist_plot <- ggplot(data.frame(x = sample), aes(x)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black", alpha = 0.7) +
+  labs(title = "Density Histogram of Pareto(3,2) Random Sample",
+       x = "Value", y = "Frequency")
+
+# 3. theoretical density curve f(x)
+density_curve <- function(x) (a * b^a) / x^(a + 1)
+hist_plot + stat_function(fun = density_curve, color = "red", size = 1)
+
+# 4.rpareto function
+rpareto <- function(n, shape, scale) {
+  scale / (runif(n))^(1/shape)
+}
+
+# 5. rpareto function to generate a random sample
+set.seed(456)  # Set seed for repro
+sample2 <- rpareto(1000, 2, 1)
+
+#sample mean
+sample_mean <- mean(sample2)
+cat("Sample Mean:", sample_mean, "\n")
+
+```
