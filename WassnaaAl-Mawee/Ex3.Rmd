@@ -1,0 +1,111 @@
+---
+title: "Ex3"
+author: "Wassnaa Al-Mawee"
+date: "1/24/2024"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Functional Programming
+
+- Given an accounting routine used in a bookshop. It works on a list with sublists, which look like this:
+```{r}
+# orders = [[bookshop order1, (book1 order number, quantity, price per item),
+#           (book2 order number, quantity, price per item),
+#           ... ],
+#          ...,
+#         [bookshop ordern,
+#           (book1 order number, quantity, price per item),
+#           (book2 order number, quantity, price per item),
+#            ... ]]
+
+# orders = [[1, ("5464", 4, 9.99), ("8274", 18, 12.99), ("9744", 9, 44.95)], 
+#              [2, ("5464", 9, 9.99), ("9744", 9, 44.95)],
+#              [3, ("5464", 9, 9.99), ("88112", 11, 24.99)],
+#              [4, ("8732", 7, 11.99), ("7733", 11, 18.99), ("88112", 5, 39.95)]]
+
+
+```
+
+- Write a **functional**, which filters out/extracts the minimum price of the product (price per item * quantity) per bookshop order. It returns a list with 4-sublists/vectors. Each vector contains 2 items (bookshop order number, book order number). 
+
+```{r eval=TRUE}
+extractMinPrice <- function(orders) {
+  pricePerItem <- function(order) {
+    sum(as.numeric(order[-1]) * as.numeric(order[-2]))
+  }
+
+  # Apply the helper function to each order and find the minimum
+  minPrice <- lapply(orders, function(order) {
+    orderNumber <- order[1]
+    bookInfo <- order[-1]  
+    minBook <- bookInfo[[which.min(sapply(bookInfo, pricePerItem))]]
+    c(orderNumber, minBook[1])
+  })
+
+  return(minPrice)
+}
+
+orders <- list(
+  c(1, c("5464", 4, 9.99), c("8274", 18, 12.99), c("9744", 9, 44.95)),
+  c(2, c("5464", 9, 9.99), c("9744", 9, 44.95)),
+  c(3, c("5464", 9, 9.99), c("88112", 11, 24.99)),
+  c(4, c("8732", 7, 11.99), c("7733", 11, 18.99), c("88112", 5, 39.95))
+)
+
+minPrice <- extractMinPrice(orders)
+print(minPrice)
+```
+
+- Write a function in R that takes a list of integers as input and returns a new list containing the squares of all the even numbers in the input list. Implement the solution using **functional programming principles**, such as using functions like `lapply` or `Map` rather than explicit loops.
+
+```{r eval=TRUE}
+squareEvenNumbers <- function(input) {
+  isEven <- function(x) x %% 2 == 0
+  square <- function(x) x^2
+  squares <- lapply(input, function(num) if (isEven(num)) square(num) else NULL)
+  squares <- Filter(Negate(is.null), squares)
+  return(squares)
+}
+
+input <- c(1, 2, 3, 4, 5, 6)
+result <- squareEvenNumbers(input_list)
+print(result)
+```
+
+- You have a dataset containing information about sales transactions. The dataset has columns `product`, `quantity`, and `price`. Write a **closure** in R that takes this dataset as an argument, and returns a function. The returned function should calculate the total revenue for a specific product.
+
+```{r}
+Data <- data.frame(
+  product = c("A", "B", "A", "C", "B"),
+  quantity = c(2, 3, 1, 4, 2),
+  price = c(10, 15, 8, 5, 12)
+)
+
+# closure for revenue calculation
+createRevenueCalculator <- function(dataset) {
+  return(function(product) {
+    subsetData <- subset(dataset, product == product)
+    totalRevenue <- sum(subsetData$quantity * subsetData$price)
+    return(totalRevenue)
+  })
+}
+
+revenue_calculator <- createRevenueCalculator(Data)
+totalRevenue_A <- revenue_calculator("A")
+totalRevenue_B <- revenue_calculator("B")
+
+print(totalRevenue_A)  # Total revenue for product A
+print(totalRevenue_B)  # Total revenue for product B
+```
+
+```{r}
+
+list_data <- list("Red", "Green", c(21,32,11), TRUE, 51.23, 119.1)
+print(list_data[[3]])
+
+```

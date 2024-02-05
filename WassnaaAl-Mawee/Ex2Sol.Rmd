@@ -1,0 +1,103 @@
+---
+title: "Ex2Sol.Rmd"
+output: word_document
+date: "2024-01-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Table Creation Using Markdown
+
+| Class     | Time     |
+|:----------|:---------|
+| CS5601    | 2:30PM   |
+| STAT5860  | 10:30AM  |
+
+
+|   Class   |   Time   |
+|:------------:|:------------:|
+|   CS5601   |   2:30PM   |
+|   STAT5860   |   10:30AM   |
+
+| Class     |   Time    |
+|----------:|----------:|
+| CS5601    |   2:30PM  |
+| STAT5860  |  10:30AM  |
+
+#### Attaching a Hyperlink
+[Visit my LinkedIn](https://www.linkedin.com/in/bharikrishnareddy/)
+
+#### Inserting an Image
+![Motivational Image](/Users/harikrishnareddy/Desktop/R-File-Modification/image.jpg)
+
+#### Questions about Functions in R
+
+1. **Define what a function is in the context of R.**
+* In R, a function is a reusable chunk of code that performs a certain task. It accepts inputs, processes them, and generates an output. In R, functions can be either built-in or user-defined.
+
+2. **Explain the process of defining a function in R.**
+```{r eval=FALSE}
+func <- function(param1, param2) {
+  result <- param1 + param2
+  return(result) }
+```
+
+3. **Discuss the significance of the `return` statement in R functions.**
+* The return statement specifies the value to be returned by a function. It signifies the function's end and returns the provided value.
+
+4. **Explore the differences between global and local variables within R functions.**
+* Global variables are defined outside of any function and can be used throughout the R session. Local variables are created within a function and can only be accessed within that function.
+
+5. **Demonstrate how to pass arguments to a function in R.**
+
+```{r eval=FALSE}
+result <- func(5, 3)
+```
+
+6. **Provide an example of a built-in function in R and describe its purpose.**
+
+```{r eval=FALSE}
+mean_value <- mean(c(1, 2, 3, 4, 5))
+```
+
+7. **Examine the importance of the `apply` family of functions in R.**
+
+* The apply family of functions (e.g., apply(), lapply(), sapply(), tapply()) is required for applying a function to the rows or columns of matrices, data frames, or other data structures.
+
+8. **Choose a specific built-in function in R and explain its purpose. Provide an example demonstrating how to use this function with relevant arguments and showcase the expected output. Additionally, discuss the significance of this function within the broader context of data analysis in R.**
+```{r eval=FALSE}
+unique_values <- unique(c(1, 2, 2, 3, 4, 4, 5))
+
+summary_result <- summary(c(23, 45, 12, 67, 34, 56, 89, 43, 21))
+
+matching_indices <- grep("an", c("apple", "banana", "orange", "grape", "kiwi"))
+```
+
+9. **Discuss strategies for handling missing values within an R function.**
+* Common solutions include using functions such as is.na() and na.omit(), as well as defining particular rules within the function to handle missing values appropriately.
+
+10. **Investigate the role of the `source()` function in executing R scripts.**
+* The source() function is used to execute R scripts by reading and evaluating the code in the specified file.
+
+#### Advanced User-Defined Function
+
+```{r eval=FALSE}
+# Advanced function incorporating loops and conditionals
+complex_func <- function(x) {
+  result <- 0
+  
+  for (i in 1:x) {
+    if (i %% 2 == 0) {
+      result <- result + i^2
+    } else {
+      result <- result - i
+    }
+  }
+  
+  return(result)
+}
+output <- complex_func(5)
+print(output)
+```
