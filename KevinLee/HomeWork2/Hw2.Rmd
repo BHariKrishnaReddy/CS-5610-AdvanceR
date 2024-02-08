@@ -52,38 +52,30 @@ print(qq_plot)
 
 
 ### Problem 2
-
 ```{r echo=TRUE}
-# Set the seed
 set.seed(210)
-library(ggplot2)
-rejection_sampling <- function(n) {
-  samples <- numeric(n)
-  c <- 2.5
-  for (i in 1:n) {
-    repeat {
-      y <- rcauchy(1)
-      acceptance_prob <- dnorm(y) / (c * dcauchy(y))
-      if (runif(1) < acceptance_prob) {
-        samples[i] <- y
-        break
-      }
-    }
-  }
-  return(samples)
+n <- 1000
+
+# Function to calculate the pdf of the given distribution
+pdf <- function(x) {
+  term1 <- (1 /2)*(1 / sqrt(2 * pi) * exp(-(x - 1)^2 / 2))
+  term2 <- (1 /2)*(1 / sqrt(2 * pi) * exp(-(x - 3)^2 / 2))
+  return(term1 + term2)
 }
 
-sample_size <- 10000
-sample <- rejection_sampling(sample_size)
-sample_percentiles <- quantile(sample, seq(0, 1, 0.01))
-standard_normal_percentiles <- qnorm(seq(0, 1, 0.01))
+importance_sampling <- function(x) {
+  dnorm(x, mean=2, sd=1)
+}
 
-qq_plot <- ggplot() +
-  geom_point(aes(sample_percentiles, standard_normal_percentiles), color = "blue") +
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
-  labs(title = "Q-Q Plot", x = "Sample Percentiles", y = "Standard Normal Percentiles")
+samples <- rnorm(n, mean=2, sd=1)
+weights <- pdf(samples) / importance_sampling(samples)
+importance_sampling_estimate <- mean(samples * pdf(samples) / importance_sampling(samples))
 
-print(qq_plot)
+# Plot
+plot(cumsum(samples * pdf(samples) / importance_sampling(samples)) / (1:n),
+     type ="l", xlab = "Number of Samples", ylab = "Importance Sampling Estimate")
+abline(h = 2, col = "red")
+
+# Output
+print(importance_sampling_estimate)
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
