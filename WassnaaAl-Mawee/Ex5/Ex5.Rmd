@@ -1,0 +1,205 @@
+---
+title: "Ex5"
+author: "Wassnaa Al-Mawee"
+date: "2/07/2024"
+output:
+  word_document : default
+  html_document : default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+cran_mirror <- "https://cran.rstudio.com/"
+options(repos = c(CRAN = cran_mirror))
+install.packages("tidyr")
+```
+## Accessing a relational database
+
+- Install and load the `dplyr`, `DBI`, and `RSQLite` packages for accessing
+databases
+```{r}
+install.packages(c("dplyr", "DBI", "RSQLite"))
+library(dplyr)
+library(DBI)
+library(RSQLite)
+```
+
+- Create a connection to the `Chinook_Sqlite.sqlite` file.
+```{r}
+con <- dbConnect(RSQLite::SQLite(), "/Users/harikrishnareddy/Desktop/R/WassnaaAl-Mawee/Ex5/Chinook_Sqlite.sqlite")
+con
+```
+
+
+Use the `dbListTables()` function (passing in the connection) to get a list
+of tables in the database.
+```{r}
+tables <- dbListTables(con)
+print(tables)
+```
+
+- Use the `tbl()`function to create a reference to the table of music genres.
+Print out the the table to confirm that you've accessed it.
+```{r}
+genres <- tbl(con, "Genre")
+genres
+```
+
+- Try to use `View()` to see the contents of the table. What happened?
+```{r}
+head(genres)
+```
+
+- Use the `collect()` function to actually load the genre table into memory
+ as a data frame. View that data frame.
+```{r}
+genres_df <- collect(genres)
+genres_df
+```
+
+- Use dplyr's `count()` function to see how many rows are in the genre table
+```{r}
+genres_count <- count(genres)
+genres_count
+```
+
+
+- Use the `tbl()` function to create a reference the table with track data.Print out the the table to confirm that you've accessed it.
+```{r}
+tracks <- tbl(con, "Track")
+tracks
+```
+
+- Use dplyr functions to query for a list of artists in descending order by popularity in the database (e.g., the artist with the most tracks at the top)
+- Start by filting for rows that have an artist listed (use `is.na()`), then group rows by the artist and count them. Finally, arrange the results.
+- Use pipes to do this all as one statement without collecting the data into memory!
+```{r}
+artist_popularity <- tracks %>%
+  filter(!is.na(Composer)) %>%
+  group_by(Composer) %>%
+  summarize(Count = n()) %>%
+  arrange(desc(Count))
+View(artist_popularity)
+```
+
+- Use dplyr functions to query for the most popular _genre_ in the library. You will need to count the number of occurrences of each genre, and join the two tables together in order to also access the genre name. Collect the resulting data into memory in order to access the specific row of interest
+```{r}
+most_popular_genre <- genres %>%
+  left_join(tracks, by = c("GenreId" = "GenreId")) %>%
+  count(GenreId, name = "GenreCount") %>%
+  arrange(desc(GenreCount)) %>%
+  collect() %>%
+  slice(1)
+most_popular_genre
+```
+
+- Query for a list of the most popular artist for each genre in the library (a "representative" artist for each). Consider using multiple grouping operations. Note that you can only filter for a `max()` value if you've collected the data into memory.
+```{r}
+# Remove the grouping structure before the join
+artist_popularity <- tracks %>%
+  filter(is.na(Composer)) %>%
+  group_by(GenreId, Composer) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count)) %>%
+  group_by(GenreId) %>%
+  slice_max(Count) %>%
+  ungroup()
+
+genre_artist_popularity <- left_join(artist_popularity, genres, by = c("GenreId"))
+
+print(artist_popularity)
+```
+
+- Remember to disconnect from the database once you are done with it!
+```{r}
+dbDisconnect(con)
+```
+
+
+
+
+# Working with data APIs
+
+In this exercise, you'll practice working with a data API: specifically, the [New York Times API](https://developer.nytimes.com/) for movie reviews. To learn more about the API, see the [developer console](https://developer.nytimes.com/movie_reviews_v2.json).
+
+## Getting an API Key
+You will need to register with the NYT site at **<https://developer.nytimes.com/signup>** in order to get an API Key. Fill out the form (you can use fake information and a single-use email if you wish). Under "API" select **"Movie Reviews API"** (and note other APIs available for future projects)! The API key should be emailed to you once you sign up.
+
+1. In order to utilize this key in your script, create a **separate* RScript called `apikey.R` inside this directory. Assign the key that was emailed to you to a variable:
+
+```{r}
+nty_apikey <- "dFwYLuZvyrAplw05W6VSBEbKQsJ3XKxX"
+```
+
+
+2. Use `source()` to load your API key variable from the `apikey.R` file you made. Make sure you've set your working directory!
+
+```{r}
+rm(list = ls())
+suppressWarnings(source("apikey.R"))
+```
+
+3. Create a variable `movie_name` that is the name of a movie of your choice.
+```{r}
+setwd("/Users/harikrishnareddy/Desktop/R/WassnaaAl-Mawee/Ex5/")
+Article_name <- "R research"
+```
+
+4. Construct an HTTP request to search for reviews for the given movie.
+  + The base URI is `https://api.nytimes.com/svc/movies/v2/`
+  + The resource is `reviews/search.json`
+  + See the interactive console for parameter details: https://developer.nytimes.com/movie_reviews_v2.json
+  
+  + You should use YOUR api key (as the `api-key` parameter) and your `movie_name` variable as the search query!
+```{r}
+install.packages("httr") 
+library("httr")
+url <- "https://api.nytimes.com/svc/search/v2/articlesearch.json"
+query_params <- list(
+  q = Article_name,  
+  "api-key" = nty_apikey  
+)
+response <- GET(url, query = query_params)
+```
+
+4. Send the HTTP Request to download the data. Then, extract the content and convert it from JSON
+```{r}
+install.packages("jsonlite") 
+library(httr)
+library(jsonlite)
+response_text <- content(response, type = "text",encoding = "UTF-8")
+response_data <- fromJSON(response_text)
+```
+
+5. What kind of data structure did this produce? A data frame? A list? 
+```{r}
+class(response_data)
+```
+
+6. Manually inspect the returned data and identify the content of interest (which are the movie reviews). Use functions such as `names()`, `str()`, etc.
+```{r}
+names(response_data)
+```
+
+7. Flatten the movie reviews content into a data structure called `reviews`
+```{r}
+reviews <- flatten(response_data$response$docs)
+```
+
+8. From the most recent review, store the headline, short summary, and link to the full article, each in their own variables
+```{r}
+headline <- reviews[[18]][[1]]
+short_summary <- reviews[[1]][[1]]
+full_article <- reviews[[2]][[1]]
+```
+
+9. Create a list of the three pieces of information from above. Print out the list.
+```{r}
+review_info <- list(headline = headline, summary = summary, full_article_link = full_article)
+print(review_info)
+```
+
+
