@@ -1,0 +1,26 @@
+
+
+```{r}
+install.packages("tidyverse")
+# Load the tidyverse package
+library(tidyverse)
+
+# Rest of the code remains unchanged
+set.seed(123)
+student_data <- data.frame(
+  Student_ID = rep(1:5, each = 3),
+  Semester = rep(1:3, times = 5),
+  Math_Score = round(rnorm(15, mean = 75, sd = 10)),
+  English_Score = round(rnorm(15, mean = 70, sd = 8)),
+  Science_Score = round(rnorm(15, mean = 80, sd = 7))
+)
+
+# Reshape the data from wide to long format
+student_data_long <- student_data %>%
+  pivot_longer(cols = starts_with("Math") | starts_with("English") | starts_with("Science"),
+               names_to = "Subject",
+               values_to = "Score")
+
+# View the reshaped data
+print(student_data_long)
+```
