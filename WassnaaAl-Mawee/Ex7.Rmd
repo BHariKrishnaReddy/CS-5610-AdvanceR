@@ -1,0 +1,172 @@
+---
+title: "Ex5"
+author: "Wassnaa Al-Mawee"
+date: "3/13/2024"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## OOP-S4
+
+1. Design a class that holds the following personal data: name, address, age, and phone number. Write appropriate accessor functions (getters and setters). Then, write a program that creates three instances of the class. One instance should hold your information, and the other two should hold your friends' or family members' information. 
+```{r}
+# Define the Person class
+Person <- function(name, address, age, phone_number) {
+  person <- list(
+    name = name,
+    address = address,
+    age = age,
+    phone_number = phone_number
+  )
+  class(person) <- "Person"
+  
+  # Define accessor functions (getters and setters)
+  getName <- function() {
+    return(person$name)
+  }
+  
+  setName <- function(new_name) {
+    person$name <- new_name
+  }
+  
+  getAddress <- function() {
+    return(person$address)
+  }
+  
+  setAddress <- function(new_address) {
+    person$address <- new_address
+  }
+  
+  getAge <- function() {
+    return(person$age)
+  }
+  
+  setAge <- function(new_age) {
+    person$age <- new_age
+  }
+  
+  getPhoneNumber <- function() {
+    return(person$phone_number)
+  }
+  
+  setPhoneNumber <- function(new_phone_number) {
+    person$phone_number <- new_phone_number
+  }
+  
+  # Return the object with accessor methods
+  return(list(
+    person = person,
+    getName = getName,
+    setName = setName,
+    getAddress = getAddress,
+    setAddress = setAddress,
+    getAge = getAge,
+    setAge = setAge,
+    getPhoneNumber = getPhoneNumber,
+    setPhoneNumber = setPhoneNumber
+  ))
+}
+
+# Create instances of the class
+person1 <- Person("HariKrishna", "310 S Kendall", 25, "7288871888")
+person2 <- Person("Krishna Hari", "310 S KendallRoomate2", 30, "2699981599")
+person3 <- Person("Krishna Reddy", "310 S KendallRoomate3", 30, "269-998-1599")
+
+# Test accessor functions
+print(person1$getName())  
+person2$setAge(31)
+print(person2$getAge())   
+
+# Print the information of each person
+print(person1$person)
+print(person2$person)
+print(person3$person)
+
+
+```
+
+
+## OOP-R6
+
+2. Write a class named `Person` with data fields for a person's name, address, and telephone number. Next, write a class named `Customer` that is a subclass of the `Person` class. The `Customer` class has a data field for a customer id [private access], and a Boolean data field indicating whether the customer wishes to be on a mailing list. Demonstrate an instance of the `Customer` class in a simple program. Also, Demonstrate the distinction between public and private fields in the `Customer` class in a simple statement. 
+```{r}
+# Define the Person class
+Person <- function(name, address, phone_number) {
+  person <- list(
+    name = name,
+    address = address,
+    phone_number = phone_number
+  )
+  class(person) <- "Person"
+  return(person)
+}
+
+# Define accessor functions (getters and setters) for Person class
+getName <- function(person) {
+  return(person$name)
+}
+
+setName <- function(person, name) {
+  person$name <- name
+}
+
+getAddress <- function(person) {
+  return(person$address)
+}
+
+setAddress <- function(person, address) {
+  person$address <- address
+}
+
+getPhoneNumber <- function(person) {
+  return(person$phone_number)
+}
+
+setPhoneNumber <- function(person, phone_number) {
+  person$phone_number <- phone_number
+}
+
+# Define the Customer class as a subclass of Person
+Customer <- function(name, address, phone_number, customer_id, on_mailing_list = FALSE) {
+  customer <- list(
+    name = name,
+    address = address,
+    phone_number = phone_number,
+    customer_id = customer_id,
+    on_mailing_list = on_mailing_list
+  )
+  class(customer) <- c("Customer", "Person")
+  return(customer)
+}
+
+# Define accessor functions (getters and setters) for Customer class
+getCustomerID <- function(customer) {
+  return(customer$customer_id)
+}
+
+setCustomerID <- function(customer, customer_id) {
+  customer$customer_id <- customer_id
+}
+
+getMailingListStatus <- function(customer) {
+  return(customer$on_mailing_list)
+}
+
+setMailingListStatus <- function(customer, status) {
+  customer$on_mailing_list <- status
+}
+
+# Create an instance of the Customer class
+customer1 <- Customer("HariKrishna", "310 S Kendall", "7288871888","CUST69", TRUE)
+
+# Test accessor functions for Customer class
+getCustomerID(customer1)  # Output: "C12345"
+getMailingListStatus(customer1)  # Output: TRUE
+
+print(customer1$on_mailing_list)
+
+```
+

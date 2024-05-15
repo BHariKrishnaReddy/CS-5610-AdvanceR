@@ -1,18 +1,54 @@
-# CS5610 Ex6
+# Load necessary libraries
+library(shiny)
+library(httr)
 
-# Load libraries so they are available
-library("shiny")
+# Define the UI
+ui <- fluidPage(
+  titlePanel("ChatGPT API Demo"),
+  sidebarLayout(
+    sidebarPanel(
+      textInput("input_text", "Enter your message:"),
+      actionButton("submit_button", "Submit")
+    ),
+    mainPanel(
+      verbatimTextOutput("output_text")
+    )
+  )
+)
 
-# Use source() to execute the `app_ui.R` and `app_server.R` files. These will
-# define the UI value and server function respectively.
+# Define the server logic
+server <- function(input, output) {
+  # Function to make API call to ChatGPT
+  call_chatGPT <- function(message) {
+    # Define the API endpoint
+    endpoint <- "https://api.openai.com/v1/chat/completions"
+    
+    # Define the request body
+    request_body <- list(
+      model = "text-davinci-003",  # Specify the ChatGPT model
+      prompt = message,
+      max_tokens = 50  # Maximum number of tokens in the response
+    )
+    
+    # Make the API request
+    response <- POST(endpoint, body = request_body, add_headers("Authorization" = paste("Bearer", api_key)))
+    
+    # Parse the response
+    if (http_type(response) == "application/json") {
+      content <- content(response, "parsed")
+      return(content$output$text)
+    } else {
+      return("Error: Unable to fetch response from the API.")
+    }
+  }
+  
+  # Event handler for the submit button
+  observeEvent(input$submit_button, {
+    # Call the ChatGPT API with the input text
+    output_text <- call_chatGPT(input$input_text)
+    output$output_text <- renderText(output_text)
+  })
+}
 
-# You will need to fill in the `app_ui.R` file to create the layout.
-# Run the app through this file.
-
-# Create a new `shinyApp()` using the loaded `ui` and `server` variables
-# Source UI and server code
-source("app_ui.R")
-source("app_server.R")
-
-# Create and run the Shiny app
+# Run the application
 shinyApp(ui = ui, server = server)

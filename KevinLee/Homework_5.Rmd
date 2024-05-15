@@ -1,0 +1,110 @@
+---
+title: "Homework 5"
+author: "Hari Krishna Reddy"
+date: "2024-03-26"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1. The Cauchy distribution with scale 1 has following density function f (x) = 1/π [1 + (x − η)^2] , −∞ < x < ∞. Here η is the location parameter.
+
+### 1. Use rcauchy() function to generate 1000 random samples from a Cauchy distribution with η = 1 and scale 1.
+```{r}
+set.seed(318)
+n=1000
+m=1 
+random_samples=rcauchy(n,m,1) 
+```
+
+### 2. Use the bisection method to find the maximum likelihood estimator of η. Use the random samples you obtained from 1. as sample observations.
+
+```{r}
+mle <- function(m)
+{
+  sum((2*(random_samples-m))/(1+(random_samples-m)^2))
+}
+uniroot(mle, c(-3, 3))$root
+
+```
+
+### 3. Use the Newton’s method to find the maximum likelihood estimator of η. Use the random samples you obtained from 1. as sample observations.
+
+```{r}
+library(numDeriv)
+
+mle_n <- function(m, n = 1000, rs = random_samples)
+{
+  -n*log(pi) - sum(log(1+(rs-m)^2))
+}
+
+m <- 2
+
+for(i in 1:20)
+{
+  z <- genD(func = mle_n, x = m)$D[1]
+  z_1 <- genD(func = mle_n, x = m)$D[2]
+  result <- m - z/z_1
+  m <- result
+  print(result, digits = 10)
+}
+```
+
+## Problem 2
+
+### 1. Load the data set uploaded in course Elearning. (Hint: to import .txt file into R, use read.table() function and you may also need header = T argument inside the function.)
+
+```{r}
+data <- read.table("poisson.txt",header=T)
+head(data)
+```
+
+### 2. Use the Newton’s method with initial value β0 = 0 and β1 = 0 to find the maximum likelihood estimator of β0 and β1.
+```{r}
+attach(data)
+
+g <- function(x, y, beta_0, beta_1)
+{
+  g <- rep(0, 2)
+  g[1] <- sum(- exp(beta_0 + beta_1*x)+y)
+  g[2] <- sum((- exp(beta_0 + beta_1*x)+y)*x)
+  return(g)
+}
+
+new <- function(x, beta_0, beta_1)
+{
+  new <- matrix(0, nrow = 2, ncol = 2)
+  new[1,1] <- -sum(exp(beta_0+beta_1*x))
+  new[1,2] <- -sum((exp(beta_0+beta_1*x))*x)
+  new[2,1] <- new[1,2]
+  new[2,2] <- -sum((exp(beta_0+beta_1*x))*(x^2))
+  return(new)
+}
+
+beta <- c(0,0)
+
+for(i in 1:10)
+{
+  beta_2 <- beta - solve(new(x = x, beta_0 = beta[1], beta_1 = beta[2])) %*% g(x = x, y = y, beta_0 = beta[1], beta_1 = beta[2])
+  beta <- beta_2
+  print(beta_2, digits = 10)
+}
+
+f <- function(beta, y=data$y , x=data$x)
+{
+  (-1)*sum(-exp(beta[1]+beta[2]*x)+(beta[1]+beta[2]*x)*y-log(factorial(y)))
+}
+
+optim(c(0,0), f)$par
+```
+
+### 3. When we want to run Poisson regression in R, we use glm() function with family = "poisson". Compare your parameter estimation results in 2. to glm() output.
+
+```{r}
+pr <- glm(y ~ x, family = poisson(), data=data)
+summary(pr)
+pr$coefficients
+```
+

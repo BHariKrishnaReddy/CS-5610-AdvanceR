@@ -1,0 +1,85 @@
+---
+title: "Ex8"
+author: "Benakana Harikrishna Reddy"
+date: "2024-03-26"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Climate Change
+
+```{r }
+climate <- read.csv("ClimateChange.csv")
+
+# Filter the data
+training_set <- subset(climate, Year <= 2006)
+testing_set <- subset(climate, Year > 2006)
+# Build the linear regression model using training data
+linear_regression_model <- lm(Temp ~ MEI + CO2 + CH4 + N2O + CFC.11 + CFC.12 + TSI + Aerosols,
+                               data = training_set)
+
+# Print the summary of the linear regression model
+summary(linear_regression_model)
+```
+
+```{r }
+# ii) Evaluate the quality of the model. What is the R^2 value? (Note that this is called "Multiple R-squared" in some software output.)
+summary(linear_regression_model)$r.squared
+print("Value of R^2 is 0.7508933")
+
+# Which independent variables are significant?
+print("The significant values are:  MEI, CO2, CH4, N2O, CFC, TSI and Aerosols.")
+
+# iii) 
+print("All the gas concentration variables reflect human development - N2O and CFC.11 are correlated with other variables in the data set.I mean That the linear regression model's negative regression coefficients for N2O and CFC-11 are expected, as these gases are thought to contribute to global warming by trapping heat in the atmosphere. It's important to understand that the linear regression model does not necessarily imply a causal relationship; rather, it demonstrates a statistical association between variables.")
+```
+
+```{r}
+# iv) Compute the correlations between all the independent variables in the training set.
+cor(training_set)
+
+# Which independent variables is N2O highly correlated with (absolute correlation greater than 0.7)?
+print("CO2, CH4, CFC.12")
+
+# Which independent variables is CFC.11 highly correlated with(absolute correlation greater than 0.7)?
+print("CH4, CFC.12")
+
+
+```
+
+```{r}
+# b)
+# Now build a new model regression model, this time only using MEI, TSI, Aerosols and N2O as a independent variables. Remember to use the training set to build the model.
+new_regression_model <- lm(Temp ~ MEI + TSI + Aerosols + N2O, 
+             data=training_set)
+
+# i) How does the coefficient for N2O in this model compared to the coefficient in the previous model?
+print("2.532e-02  is the coefficient for N2O in this model, where as -1.653e-02 is the the coefficient for N2O in the previous model.")
+
+# ii)
+print("The R-squared value of new model is 0.7261321, where as the R-squared value of old model is 0.7508933. The quality of the new model has reduced.")
+```
+
+```{r}
+# c)
+print("After comparing the N2O coefficients. The first model's N2O coefficients are negative, indicating an inverse link between N2O concentrations in the atmosphere and world temperatures.And the second model is positive.The model2 R-square is 0.7261, compared to 0.7509 in the prior model, due to the significant correlation between the independent variables.")
+
+predict_test_data = predict(new_regression_model, new = testing_set)
+
+summary(predict_test_data)
+
+error_ss = sum((predict_test_data - testing_set$Temp)^2)
+
+total_ss = sum( (mean(training_set$Temp) - testing_set$Temp)^2)
+
+r_sq_new = 1 - error_ss/total_ss
+
+r_sq_new
+
+
+print("R-squared value is 0.4967795. R-squared value is significantly reduced when compared to the previous two models.")
+```

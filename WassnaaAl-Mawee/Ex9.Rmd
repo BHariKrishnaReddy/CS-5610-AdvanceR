@@ -1,0 +1,203 @@
+---
+title: "Ex9"
+author: "HariKrishna Reddy"
+date: "4/03/2024"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Part 1: Collaborative Filtering Systems
+
+- Given the users' rating tables for movies, Write a program to predict Amy's rating for Godfather and Dan's rating for Jaws.
+Hints: 
+- Calculate the rating averages and std Dev for each user. 
+- Then, calculate the similarities between all users using the correlation measure equation:
+$$
+S_{A,B} = \frac{\frac{1}{n} \sum_{i = 1}^{n}{(r_{A,i} -\mu_A )(r_{B,i} -\mu_B)}}{\sigma_A\sigma_B}
+$$
+- Then, calculate the predication for the users using predication equation:
+
+$$
+P_{A,i} = \mu_A+\frac{ \sum_{u \in U_i}S_{A,u}(r_{u,i} -\mu_u)}{\sum_{u \in U_i}S_{A,u}}
+$$
+- Finally, comments on the predicted rating. Do you recommend it for your customer? yes/no ,and why?
+
+
+| user   | Forrest Gump (F) | Godfather (G) |Inception (I)| Jaws (J)|
+|--------|------------------|---------------|-------------| --------|
+|Amy (A) |        5         |               |      4      |    3    |
+|Bob (B) |        3         |      5        |      2      |	   5    |
+|Carl(C) |                  |      3        |      5      |    4    |
+|Dan (D) |        4         |      5        |      4      |         |
+|Eva (E) |        4         |      4        |             |    3    |
+
+
+```{r eval=True}
+# Create the movie ratings table
+movie_ratings_new <- matrix(c(5,NA,4,3,
+                           3,5,2,5,
+                           NA,3,5,4,
+                           4,5,4,NA,
+                           4,4,NA,3),
+                         nrow = 5, byrow = TRUE)
+
+rownames(movie_ratings_new) <- c("A", "B", "C", "D", "E")
+colnames(movie_ratings_new) <- c("F", "G", "I", "J")
+
+movie_ratings_df_new <- data.frame(movie_ratings_new)
+
+sd_new_func <- function(x) {
+  mean_x <- mean(x, na.rm = TRUE)
+  sum_squares <- sum((x - mean_x)^2, na.rm = TRUE)
+  n_na <- sum(is.na(x))
+  variance <- sum_squares / (length(x) - n_na)
+  sd <- sqrt(variance)
+  return(sd)
+}
+
+row_means_new <- apply(movie_ratings_df_new, 1, mean, na.rm = TRUE)
+row_sd_new <- apply(movie_ratings_df_new, 1, sd_new_func)
+ratings_summary_new <- data.frame(row_means_new, row_sd_new)
+colnames(ratings_summary_new) <- c("Mean", "SD")
+ratings_summary_new
+```
+
+
+
+
+
+```{r eval=True}
+my_cor_func <- function(x, y) {
+  
+  x_mean <- mean(x, na.rm = TRUE)
+  y_mean <- mean(y, na.rm = TRUE)
+  
+  # Calculate standard deviations
+  x_sd <- sd_new_func(x)
+  y_sd <- sd_new_func(y)
+  
+  cov <- sum((x - x_mean) * (y - y_mean), na.rm = TRUE)
+  n_na <- sum(is.na(x))
+  cor <- cov / ((length(x) - n_na) * x_sd * y_sd)
+
+  return(cor)
+}
+
+# Compute correlation coefficients between all rows
+similarity_matrix_new <- apply(movie_ratings_df_new, 1, function(x) {
+  apply(movie_ratings_df_new, 1, function(y) {
+    my_cor_func(x, y)
+  })
+})
+
+similarity_matrix_new
+
+```
+## Part 2: Investigating Text Mining Twitter Data With TidyText in R
+
+In this section, we will explore how to use the `tidytext` package in R to perform text mining on Twitter data related to R in Data Science.
+
+You can refer to an example provided in the [Earth Data Science website](https://www.earthdatascience.org/courses/earth-analytics/get-data-using-apis/text-mining-twitter-data-intro-r/), and modify it according to your requirements.
+
+# Authentication with rtweet
+
+To authenticate with the `rtweet` package and obtain your authentication token/API key, you can follow the instructions provided in the [official documentation](https://cran.r-project.org/web/packages/rtweet/vignettes/auth.html).
+
+```{r eval=TRUE}
+# api key = 4p2TY2sPaQXteLkh8U1gfmCrT
+# api key Secret = 9CXhjpzquCTC9ZYM3LkSboPldwze5TgP46lJiXsqdLjB0OLRRr
+# brearer Token = AAAAAAAAAAAAAAAAAAAAAAuPtAEAAAAAisyHdDsuH14yIsDzog64no6qpjg%3DTHo1HByYfUDGerjl8qpAieA5JCNVFNiH6hVu1nm1tJ01LpIsYC
+# access Token = 1742725746332684288-9WFHRIC1u6inFQZp0uZrJGenqFOo9V
+# ATSecret = BpGPX2xb1aAfqpcSnuzR6CxCAewDJ6qtl2I2uAaJpRjYe
+
+# Install required packages
+if (!requireNamespace("rtweet", quietly = TRUE)) {
+  install.packages("rtweet")
+}
+if (!requireNamespace("tidytext", quietly = TRUE)) {
+  install.packages("tidytext")
+}
+
+# Load required libraries
+library(tidytext)
+library(rtweet)
+library(ggplot2)
+library(dplyr)
+
+# Set your Twitter app name, API key, API secret, access token, and access secret
+appname <- "your-app-name"  # Replace with your app name
+key <- "4p2TY2sPaQXteLkh8U1gfmCrT"  # Replace with your API key
+secret <- "y9CXhjpzquCTC9ZYM3LkSboPldwze5TgP46lJiXsqdLjB0OLRRr"  # Replace with your API secret
+access_token <- "1742725746332684288-9WFHRIC1u6inFQZp0uZrJGenqFOo9V"  # Replace with your access token
+access_secret <- "BpGPX2xb1aAfqpcSnuzR6CxCAewDJ6qtl2I2uAaJpRjYe"  # Replace with your access secret
+
+client <- rtweet_client(app = "1775540794985742336hari_krishn")
+client_as(client)
+```
+
+```{r eval=Ture}
+# Specify the user ID instead of the username
+user_id <- "44196397"  # Replace "123456789" with the actual user ID of the user you want to fetch tweets from
+tweets <- user_tweets(user_id, n = 2)
+print("Tweets fetched from the user")
+
+# Clean and preprocess the text data
+clean_tweets <- tweets %>%
+  select(text) %>%
+  mutate(text = gsub("http\\S+\\s*", "", text)) %>%  # Remove URLs
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)  # Remove stop words
+print("Text data cleaned and preprocessed")
+
+# Analyze the text data
+word_counts <- clean_tweets %>%
+  count(word, sort = TRUE)
+print("Text data analyzed")
+
+# Visualize the most common words
+word_counts %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(word, n), y = n)) +
+  geom_col(fill = "skyblue") +
+  labs(x = "Word", y = "Frequency", title = "Top 10 Most Common Words in Tweets") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+print("Visualization plotted")
+```
+
+
+```{r eval=Ture}
+
+
+tweets <- search_tweets(q = "R Data Science", n = 100)
+
+head(tweets$text, n = 10) 
+```
+```{r eval=Ture}
+
+# Search for tweets related to R in Data Science
+tweets <- search_tweets(q = "R Data Science", n = 1000)
+
+# Clean and preprocess the text data
+clean_tweets <- tweets %>%
+  select(text) %>%
+  mutate(text = gsub("http\\S+\\s*", "", text)) %>%  # Remove URLs
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)  # Remove stop words
+
+# Analyze the text data
+word_counts <- clean_tweets %>%
+  count(word, sort = TRUE)
+
+# Visualize the most common words
+word_counts %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(word, n), y = n)) +
+  geom_col(fill = "skyblue") +
+  labs(x = "Word", y = "Frequency", title = "Top 10 Most Common Words in Tweets About R in Data Science") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+-  Most of the funtions are deprecated in the rtweet and few are not able get the callback from API.

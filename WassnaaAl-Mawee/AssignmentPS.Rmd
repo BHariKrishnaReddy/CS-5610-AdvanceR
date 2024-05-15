@@ -1,0 +1,139 @@
+---
+title: "Ex8"
+author: "Wassnaa Al-Mawee"
+date: "3/27/2024"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Collaborative Filtering Systems
+
+- Given the users' rating tables for movies, Write a program to predict Amy's rating for Godfather and Dan's rating for Jaws.
+Hints: 
+- Calculate the rating averages and std Dev for each user. 
+- Then, calculate the similarities between all users using the correlation measure equation:
+$$
+S_{A,B} = \frac{\frac{1}{n} \sum_{i = 1}^{n}{(r_{A,i} -\mu_A )(r_{B,i} -\mu_B)}}{\sigma_A\sigma_B}
+$$
+- Then, calculate the predication for the users using predication equation:
+
+$$
+P_{A,i} = \mu_A+\frac{ \sum_{u \in U_i}S_{A,u}(r_{u,i} -\mu_u)}{\sum_{u \in U_i}S_{A,u}}
+$$
+- Finally, comments on the predicted rating. Do you recommend it for your customer? yes/no ,and why?
+
+
+| user   | Forrest Gump (F) | Godfather (G) |Inception (I)| Jaws (J)|
+|--------|------------------|---------------|-------------| --------|
+|Amy (A) |        5         |               |      4      |    3    |
+|Bob (B) |        3         |      5        |      2      |	   5    |
+|Carl(C) |                  |      3        |      5      |    4    |
+|Dan (D) |        4         |      5        |      4      |         |
+|Eva (E) |        4         |      4        |             |    3    |
+
+- Rating averages and std Dev for each user.
+```{r}
+movie_ratings <- matrix(c(5,NA,4,3,
+                          3,5,2,5,
+                          NA,3,5,4,
+                          4,5,4,NA,
+                          4,4,NA,3),
+                        nrow = 5, byrow = TRUE)
+
+rownames(movie_ratings) <- c("A", "B", "C", "D", "E")
+colnames(movie_ratings) <- c("F", "G", "I", "J")
+
+movie_ratings_df <- data.frame(movie_ratings)
+
+sd_new <- function(x) {
+  mean_x <- mean(x, na.rm = TRUE)
+  sum_squares <- sum((x - mean_x)^2, na.rm = TRUE)
+  n_na <- sum(is.na(x))
+  variance <- sum_squares / (length(x) - n_na)
+  sd <- sqrt(variance)
+  return(sd)
+}
+
+row_means <- apply(movie_ratings_df, 1, mean, na.rm = TRUE)
+row_sd <- apply(movie_ratings_df, 1, sd_new)
+ratings_summary <- data.frame(row_means, row_sd)
+colnames(ratings_summary) <- c("Mean", "SD")
+
+ratings_summary
+```
+
+- Similarities between all users using the correlation measure equation:
+```{r}
+my_cor <- function(x, y) {
+  
+  x_mean <- mean(x, na.rm = TRUE)
+  y_mean <- mean(y, na.rm = TRUE)
+  
+  # Calculate standard deviations
+  x_sd <- sd_new(x)
+  y_sd <- sd_new(y)
+  
+  cov <- sum((x - x_mean) * (y - y_mean), na.rm = TRUE)
+  n_na <- sum(is.na(x))
+  cor <- cov / ((length(x) - n_na) * x_sd * y_sd)
+
+  return(cor)
+}
+
+# Compute correlation coefficients between all rows
+sim_matrix <- apply(movie_ratings_df, 1, function(x) {
+  apply(movie_ratings_df, 1, function(y) {
+    my_cor(x, y)
+  })
+})
+
+sim_matrix
+```
+```{r}
+godfather_index <- which(colnames(movie_ratings_df) == "G")
+jaws_index <- which(colnames(movie_ratings_df) == "J")
+
+amy_index <- which(rownames(movie_ratings_df) == "A")
+dan_index <- which(rownames(movie_ratings_df) == "D")
+
+get_rating <- function(user_index, movie_index) {
+  similarities <- sim_matrix[user_index, ]
+  ratings_diff <- movie_ratings_df[, movie_index] - movie_ratings_df[user_index, ]
+  predicted_rating <- row_means[user_index] + sum(similarities * ratings_diff / sum(similarities), na.rm = TRUE)
+  return(predicted_rating)
+}
+
+cat("Amy: ", round(get_rating(amy_index, godfather_index), 2), "\n")
+cat("Dan: ", round(get_rating(dan_index, jaws_index), 2))
+
+```
+
+
+
+# Search for tweets related to R in Data Science
+tweets <- search_tweets(q = "R Data Science", n = 1000)
+
+# Clean and preprocess the text data
+clean_tweets <- tweets %>%
+  select(text) %>%
+  mutate(text = gsub("http\\S+\\s*", "", text)) %>%  # Remove URLs
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)  # Remove stop words
+
+# Analyze the text data
+word_counts <- clean_tweets %>%
+  count(word, sort = TRUE)
+
+# Visualize the most common words
+word_counts %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(word, n), y = n)) +
+  geom_col(fill = "skyblue") +
+  labs(x = "Word", y = "Frequency", title = "Top 10 Most Common Words in Tweets About R in Data Science") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+

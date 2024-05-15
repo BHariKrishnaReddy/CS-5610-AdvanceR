@@ -1,0 +1,45 @@
+---
+title: "EX_6"
+author: "Harikrishna Reddy Benakana"
+date: "2024-04-09"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#1st Problem 
+
+library(linprog)
+# coefficients
+ld_cvec <- c(4, 2, 9)
+# matrix A
+ld_Amat <- matrix(c(2, 1, 1, -1, 1, -3), nrow = 2, byrow = TRUE)
+# vector b
+ld_bvec <- c(2, -3)
+
+ld_result <- solveLP(ld_cvec, ld_bvec, ld_Amat, maximum = TRUE)
+# optimal values
+ld_optimal_values <- ld_result$solution
+print(ld_result)
+```
+
+
+```{r}
+#2nd Problem
+library(quadprog)
+# Quadratic term matrix
+ld_Dmat <- matrix(c(2, 0, 0, 2), nrow = 2, byrow = TRUE)
+# Linear term vector
+ld_dvec <- c(-5, -7)
+ld_Amat <- matrix(c(4, 1, 1, 4), nrow = 2, byrow = TRUE)
+ld_bvec <- c(20, 20)
+ld_result <- solve.QP(ld_Dmat, ld_dvec, ld_Amat, ld_bvec)
+print("Optimal Solution:")
+print(ld_result$solution)
+print("Optimal Objective Value:")
+print(ld_result$value)
+```
+
